@@ -66,11 +66,6 @@ gbTurntable.init({
 });
 ```
 
-## 支持我
-
-![微信扫码支付](./src/images/QR/wechet.jpg)
-![支付宝扫码支付](./src/images/QR/alipay.jpg)
-
 ## 感谢他们
 
 演示网页排版来自： [https://github.com/sofish/typo.css](https://github.com/sofish/typo.css)

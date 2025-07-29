@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GB Canvas Turntable</title>
+  <link rel="stylesheet" href="css/typo/typo.css">
+  <link rel="stylesheet" href="css/GB-canvas-turntable.css">
+  <style>
+    .wrapper {
+      padding: 20px 40px;
+    }
+
+    .fork-github {
+      position: fixed;
+      right: -100px;
+      top: 45px;
+      z-index: 9999;
+      padding: 2px 100px;
+      font-size: 12px;
+      background-color: #444;
+      border: 1px solid #000;
+      -webkit-transform: rotate(45deg);
+      -ms-transform: rotate(45deg);
+      transform: rotate(45deg);
+      text-align: center;
+    }
+
+    .fork-github a {
+      color: #fff;
+    }
+
+    .gb-turntable a.gb-turntable-btn {
+      border: none;
+    }
+
+  </style>
+</head>
+
+<body ontouchstart>
+
+
+
+
+  <div class="wrapper typo" id="wrapper">
+
+    <h1>GB-canvas-turntable.js</h1>
+    <h2>DEMO</h2>
+    <h3>
+      <a href="javascript:;" id="normal">文字 + 图片</a>
+    </h3>
+
+
+    <section id="turntable" class="gb-turntable">
+      <div class="gb-turntable-container">
+        <canvas class="gb-turntable-canvas" width="300" height="300px">抱歉！浏览器不支持。</canvas>
+      </div>
+
+      <a class="gb-turntable-btn" href="javascript:;">抽奖</a>
+    </section>
+
+
+  </div>
+
+  <script src="js/GB-canvas-turntable.js"></script>
+  <script>
+	  // 解析 URL 中的 scene 参数（默认是 default）
+	  function getSceneNameFromUrl() {
+		const params = new URLSearchParams(window.location.search);
+		return params.get("scene") || "default";
+	  }
+
+	  // 读取 JSON 场景配置文件
+	  function loadSceneConfig(sceneName, callback) {
+		fetch(`sln/${sceneName}.json`)
+		  .then(response => {
+			if (!response.ok) throw new Error("加载失败");
+			return response.json();
+		  })
+		  .then(data => {
+			callback(data);
+		  })
+		  .catch(error => {
+			console.warn(`加载场景 ${sceneName}.json 失败，尝试加载默认配置`, error);
+			// fallback: 默认配置
+			fetch(`sln/default.json`)
+			  .then(res => res.json())
+			  .then(data => callback(data))
+			  .catch(() => callback([])); // 兜底空配置
+		  });
+	  }
+  
+		document.addEventListener('DOMContentLoaded', function () {
+		const sceneName = getSceneNameFromUrl();
+
+		loadSceneConfig(sceneName, function (configData) {
+		  gbTurntable.init({
+			id: 'turntable',
+			config: function (callback) {
+			  // 使用从 JSON 读取的奖品信息
+			  callback && callback(configData);
+			},
+			getPrize: function (callback) {
+			  // 获取中奖信息（根据配置长度自动随机）
+			  const count = configData.length || 6;
+			  const num = Math.floor(Math.random() * count);
+			  const chances = num;
+			  callback && callback([num, chances]);
+			},
+			gotBack: function (data) {
+			  alert('恭喜抽中' + data);
+			}
+		  });
+		});
+	  }, false);
+
+  </script>
+</body>
+
+</html>
