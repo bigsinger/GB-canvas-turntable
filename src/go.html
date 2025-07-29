@@ -41,19 +41,8 @@
 </head>
 
 <body ontouchstart>
-
-
-
-
   <div class="wrapper typo" id="wrapper">
-
-    <h1>GB-canvas-turntable.js</h1>
-    <h2>DEMO</h2>
-    <h3>
-      <a href="javascript:;" id="normal">文字 + 图片</a>
-    </h3>
-
-
+    <h1 id="scene-title">抽奖</h1>
     <section id="turntable" class="gb-turntable">
       <div class="gb-turntable-container">
         <canvas class="gb-turntable-canvas" width="300" height="300px">抱歉！浏览器不支持。</canvas>
@@ -61,8 +50,6 @@
 
       <a class="gb-turntable-btn" href="javascript:;">抽奖</a>
     </section>
-
-
   </div>
 
   <script src="js/GB-canvas-turntable.js"></script>
@@ -92,31 +79,59 @@
 			  .catch(() => callback([])); // 兜底空配置
 		  });
 	  }
-  
-		document.addEventListener('DOMContentLoaded', function () {
-		const sceneName = getSceneNameFromUrl();
+	  
+	// Fisher-Yates 洗牌算法
+	function shuffle(array) {
+	  for (let i = array.length - 1; i > 0; i--) {
+		let j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	  }
+	  return array;
+	}
 
-		loadSceneConfig(sceneName, function (configData) {
-		  gbTurntable.init({
-			id: 'turntable',
-			config: function (callback) {
-			  // 使用从 JSON 读取的奖品信息
-			  callback && callback(configData);
-			},
-			getPrize: function (callback) {
-			  // 获取中奖信息（根据配置长度自动随机）
-			  const count = configData.length || 6;
-			  const num = Math.floor(Math.random() * count);
-			  const chances = num;
-			  callback && callback([num, chances]);
-			},
-			gotBack: function (data) {
-			  alert('恭喜抽中' + data);
-			}
-		  });
+	// 根据权重扩展数组
+	function expandByWeight(items) {
+	  const expanded = [];
+	  items.forEach(item => {
+		const count = (typeof item.weight === 'number' && item.weight > 0) ? Math.floor(item.weight) : 1;
+	  console.log(count);
+		for (let i = 0; i < count; i++) {
+		  expanded.push(item);
+		}
+	  });
+	  return shuffle(expanded);
+	}
+
+	  document.addEventListener('DOMContentLoaded', function () {
+	  const sceneName = getSceneNameFromUrl();
+	  console.log(sceneName);
+
+	  loadSceneConfig(sceneName, function (configData) {
+		// 扩展并洗牌，缓存扩展后的数组
+		const expandedConfig = expandByWeight(configData);
+	  console.log(configData);
+	  console.log(expandedConfig);
+
+		gbTurntable.init({
+		  id: 'turntable',
+		  config: function (callback) {
+			callback && callback(configData);
+		  },
+		  getPrize: function (callback) {
+			const total = expandedConfig.length;
+			const num = Math.floor(Math.random() * total);
+			// expandedConfig[num] 就是抽中的奖品对象
+			const indexInOriginal = configData.indexOf(expandedConfig[num]);
+			const chances = 1;
+			console.log(total, num, indexInOriginal);
+			callback && callback([indexInOriginal, chances]);
+		  },
+		  gotBack: function (data) {
+			alert('恭喜抽中：' + data);
+		  }
 		});
-	  }, false);
-
+	  });
+	});
   </script>
 </body>
 
